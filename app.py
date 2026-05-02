@@ -2,13 +2,11 @@ from pathlib import Path
 import re
 
 
-CARTELLA_PRINCIPALE = Path(r"C:\Users\miskat01\Downloads\quiz_book_img")
-
-ESTENSIONI_IMMAGINI = {".jpg", ".jpeg", ".png", ".webp"}
+CARTELLA_PRINCIPALE = Path(r"C:\Users\miskat01\Downloads\success_book_img")
 
 
-def numero_capitolo(nome_cartella):
-    match = re.search(r"Capitolo_(\d+)", nome_cartella, re.IGNORECASE)
+def numero_cartella(nome):
+    match = re.search(r"(\d+)", nome)
     return int(match.group(1)) if match else 9999
 
 
@@ -21,25 +19,14 @@ def main():
         if cartella.is_dir()
     ]
 
-    cartelle = sorted(cartelle, key=lambda c: numero_capitolo(c.name))
+    cartelle = sorted(cartelle, key=lambda c: (numero_cartella(c.name), c.name.lower()))
 
-    totale_immagini = 0
-
-    print("Numero immagini per capitolo:\n")
+    print("LISTA CARTELLE:\n")
 
     for cartella in cartelle:
-        immagini = [
-            file for file in cartella.iterdir()
-            if file.is_file() and file.suffix.lower() in ESTENSIONI_IMMAGINI
-        ]
+        print(cartella.name)
 
-        numero_img = len(immagini)
-        totale_immagini += numero_img
-
-        print(f"{cartella.name}: {numero_img} immagini")
-
-    print("\nTotale cartelle:", len(cartelle))
-    print("Totale immagini:", totale_immagini)
+    print(f"\nTotale cartelle: {len(cartelle)}")
 
 
 if __name__ == "__main__":

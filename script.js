@@ -1,5 +1,4 @@
 const R2_BASE_URL = "https://pub-21131aa867534601af79c34beb746fb7.r2.dev";
-const CARD_FOLDER = "quiz_cards";
 
 const QUIZBOOK_CHAPTERS = [
   "Capitolo_01_Definizioni_Stradali",
@@ -29,122 +28,114 @@ const QUIZBOOK_CHAPTERS = [
   "Capitolo_25_Manutenzione_ed_Elementi_del_Veicolo"
 ];
 
-const coverScreen = document.getElementById("coverScreen");
-const chaptersScreen = document.getElementById("chaptersScreen");
-const readerScreen = document.getElementById("readerScreen");
-const openBookBtn = document.getElementById("openBookBtn");
-const backBtn = document.getElementById("backBtn");
-const closeReaderBtn = document.getElementById("closeReaderBtn");
-const subtitle = document.getElementById("subtitle");
-const chaptersGrid = document.getElementById("chaptersGrid");
-const errorBox = document.getElementById("errorBox");
-const bookPages = document.getElementById("bookPages");
-const readerTitle = document.getElementById("readerTitle");
-const readerStatus = document.getElementById("readerStatus");
-const readerLoading = document.getElementById("readerLoading");
+const SUCCESS_BOOK_CHAPTERS = [
+  { folder: "strada", display: "Strada" },
+  { folder: "segnali_di_pericolo", display: "Segnali di Pericolo" },
+  { folder: "segnali_di_divieto", display: "Segnali di Divieto" },
+  { folder: "segnali_di_obbligo", display: "Segnali di Obbligo" },
+  { folder: "segnali_di_precedenza", display: "Segnali di Precedenza" },
+  { folder: "segnaletica_orizzontale", display: "Segnaletica Orizzontale" },
+  { folder: "semafori_e_agenti", display: "Semafori e Agenti" },
+  { folder: "segnali_di_indicazione", display: "Segnali di Indicazione" },
+  { folder: "segnali_complementari_e_delineatore", display: "Segnali Complementari e Delineatore" },
+  { folder: "pnanelli_integrativi", display: "Pannelli Integrativi" },
+  { folder: "word_meaning_with_photos", display: "Word Meaning" },
+  { folder: "word_meaning", display: "Word Meaning with Photos" },
+  { folder: "quiz_sugli_errori_commessi_più_frequentemente", display: "Quiz sugli errori commessi più frequentemente" },
+  { folder: "dhada_bangla", display: "চোখের ধাঁদা", bangla: true },
+  { folder: "trucchi_velocita", display: "Trucchi Velocità" },
+  { folder: "trucchi_vero_falso", display: "Trucchi Vero/Falso" },
+  { folder: "scheda_esame", display: "Scheda Esame" },
+  { folder: "tipi_di_veicoli", display: "Tipi di Veicoli" }
+];
 
+const BOOKS = {
+  quizbook: {
+    key: "quizbook",
+    title: "QuizBook",
+    eyebrow: "25 capitoli visuali",
+    description: "Segnali, norme, precedenze e situazioni d'esame in formato sfogliabile.",
+    cover: "quiz_cards/quizbookcover.png",
+    accent: "quiz-accent",
+    chapters: QUIZBOOK_CHAPTERS.map((folder) => ({
+      folder,
+      display: formatQuizBookTitle(folder),
+      type: "quizbook"
+    }))
+  },
+  successbook: {
+    key: "successbook",
+    title: "Success Book",
+    eyebrow: "18 sezioni studio",
+    description: "Trucchi, parole chiave, schede e materiali di supporto per studiare meglio.",
+    cover: "successbookcover.png",
+    accent: "success-accent",
+    chapters: SUCCESS_BOOK_CHAPTERS.map((chapter) => ({
+      ...chapter,
+      type: "successbook"
+    }))
+  }
+};
+
+const bookScreen = document.getElementById("bookScreen");
+const chaptersScreen = document.getElementById("chaptersScreen");
+const viewerScreen = document.getElementById("viewerScreen");
+const booksGrid = document.getElementById("booksGrid");
+const chaptersGrid = document.getElementById("chaptersGrid");
+const mainTitle = document.getElementById("mainTitle");
+const subtitle = document.getElementById("subtitle");
+const chaptersTitle = document.getElementById("chaptersTitle");
+const chaptersIntro = document.getElementById("chaptersIntro");
+const backToBooksBtn = document.getElementById("backToBooksBtn");
+const backToChaptersBtn = document.getElementById("backToChaptersBtn");
+const viewerBookTitle = document.getElementById("viewerBookTitle");
+const viewerTitle = document.getElementById("viewerTitle");
+const viewerStatus = document.getElementById("viewerStatus");
+const loader = document.getElementById("loader");
+const pageList = document.getElementById("pageList");
+
+let activeBook = null;
 let currentLoadToken = 0;
 
-function buildQuizBookImageUrl(chapterFolder, page, separator = "_") {
+function buildImageUrl(bookKey, folder, page) {
   const pageNumber = String(page).padStart(3, "0");
-  return `${R2_BASE_URL}/books/quiz_book/${chapterFolder}/${chapterFolder}${separator}page-${pageNumber}.jpg`;
+
+  if (bookKey === "quizbook") {
+    return `${R2_BASE_URL}/books/quiz_book/${folder}/${folder}-page-${pageNumber}.jpg`;
+  }
+
+  if (bookKey === "successbook") {
+    return `${R2_BASE_URL}/books/success_book/${folder}/${folder}-page-${pageNumber}.jpg`;
+  }
+
+  return "";
 }
 
-function buildQuizBookImageUrlVariants(chapterFolder, page) {
+function buildImageUrlVariants(bookKey, folder, page) {
+  const primaryUrl = buildImageUrl(bookKey, folder, page);
+
+  if (bookKey !== "quizbook") {
+    return [primaryUrl];
+  }
+
+  const pageNumber = String(page).padStart(3, "0");
+
   return [
-    buildQuizBookImageUrl(chapterFolder, page, "_"),
-    buildQuizBookImageUrl(chapterFolder, page, "-")
+    primaryUrl,
+    `${R2_BASE_URL}/books/quiz_book/${folder}/${folder}_page-${pageNumber}.jpg`,
+    `${R2_BASE_URL}/books/quizbook/${folder}/${folder}-page-${pageNumber}.jpg`,
+    `${R2_BASE_URL}/books/quizbook/${folder}/${folder}_page-${pageNumber}.jpg`
   ];
 }
 
-function getChapterNumber(chapterFolder) {
-  const match = chapterFolder.match(/Capitolo_(\d+)/);
-  return match ? match[1] : "";
-}
+function formatQuizBookTitle(folder) {
+  const match = folder.match(/^Capitolo_(\d+)_(.+)$/);
 
-function getChapterTitle(chapterFolder) {
-  const chapterNumber = getChapterNumber(chapterFolder);
-  const chapterSubtitle = getChapterSubtitle(chapterFolder);
-  return `Capitolo ${chapterNumber} - ${chapterSubtitle}`;
-}
+  if (!match) {
+    return folder.replace(/_/g, " ");
+  }
 
-function getChapterSubtitle(chapterFolder) {
-  return chapterFolder
-    .replace(/^Capitolo_\d+_?/, "")
-    .replace(/_/g, " ");
-}
-
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function showCover() {
-  coverScreen.classList.add("active");
-  chaptersScreen.classList.remove("active");
-  readerScreen.classList.remove("active");
-  backBtn.classList.remove("show");
-  subtitle.textContent = "Tocca la copertina per aprire i capitoli";
-  scrollToTop();
-}
-
-function showChapters() {
-  coverScreen.classList.remove("active");
-  chaptersScreen.classList.add("active");
-  readerScreen.classList.remove("active");
-  backBtn.classList.add("show");
-  subtitle.textContent = `${QUIZBOOK_CHAPTERS.length} capitoli disponibili`;
-  scrollToTop();
-
-  chaptersGrid.classList.remove("deal-cards");
-  void chaptersGrid.offsetWidth;
-  chaptersGrid.classList.add("deal-cards");
-}
-
-function showReader() {
-  coverScreen.classList.remove("active");
-  chaptersScreen.classList.remove("active");
-  readerScreen.classList.add("active");
-  backBtn.classList.remove("show");
-  subtitle.textContent = "Lettura capitolo";
-  scrollToTop();
-}
-
-function createChapterCard(chapterFolder, index) {
-  const chapterNumber = getChapterNumber(chapterFolder);
-  const chapterTitle = getChapterTitle(chapterFolder);
-
-  const card = document.createElement("button");
-  card.className = "chapter-card";
-  card.type = "button";
-  card.style.setProperty("--deal-index", index);
-  card.style.setProperty("--deal-x", `${index % 2 === 0 ? -70 : 70}px`);
-  card.style.setProperty("--deal-rotate", `${index % 2 === 0 ? -10 : 10}deg`);
-  card.setAttribute("aria-label", `Apri ${chapterTitle}`);
-  card.addEventListener("click", () => openChapter(chapterFolder));
-
-  const image = document.createElement("img");
-  image.src = `${CARD_FOLDER}/Capitolo_${chapterNumber}.png`;
-  image.alt = chapterTitle;
-  image.loading = "lazy";
-  protectImage(image);
-
-  image.onerror = () => {
-    image.style.display = "none";
-  };
-
-  const body = document.createElement("div");
-  body.className = "chapter-card-body";
-
-  const title = document.createElement("strong");
-  title.textContent = chapterTitle;
-
-  const hint = document.createElement("span");
-  hint.textContent = "Apri capitolo";
-
-  body.append(title, hint);
-  card.append(image, body);
-
-  return card;
+  return `Capitolo ${match[1]} - ${match[2].replace(/_/g, " ")}`;
 }
 
 function protectImage(image) {
@@ -153,22 +144,162 @@ function protectImage(image) {
   image.addEventListener("copy", (event) => event.preventDefault());
 }
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function setScreen(screen) {
+  if (screen === bookScreen) {
+    document.body.dataset.screen = "books";
+  } else if (screen === chaptersScreen) {
+    document.body.dataset.screen = "chapters";
+  } else {
+    document.body.dataset.screen = "viewer";
+  }
+
+  [bookScreen, chaptersScreen, viewerScreen].forEach((item) => {
+    item.classList.toggle("active", item === screen);
+  });
+
+  backToBooksBtn.classList.toggle("hidden", screen !== chaptersScreen);
+  scrollToTop();
+}
+
+function showBooks() {
+  currentLoadToken++;
+  activeBook = null;
+  mainTitle.textContent = "Book Demo";
+  subtitle.textContent = "Scegli un libro e sfoglia le pagine in anteprima.";
+  setScreen(bookScreen);
+}
+
+function showChapters(bookKey) {
+  currentLoadToken++;
+  activeBook = BOOKS[bookKey];
+
+  mainTitle.textContent = activeBook.title;
+  subtitle.textContent = activeBook.eyebrow;
+  chaptersTitle.textContent = activeBook.title;
+  chaptersIntro.textContent = "Scegli un capitolo per iniziare la lettura.";
+
+  renderChapters(activeBook);
+  setScreen(chaptersScreen);
+}
+
+function showViewer() {
+  setScreen(viewerScreen);
+}
+
+function createBookCard(book) {
+  const card = document.createElement("button");
+  card.className = `book-card ${book.accent}`;
+  card.type = "button";
+  card.setAttribute("aria-label", `Apri ${book.title}`);
+  card.addEventListener("click", () => showChapters(book.key));
+
+  const coverWrap = document.createElement("div");
+  coverWrap.className = "book-cover";
+
+  const cover = document.createElement("img");
+  cover.src = book.cover;
+  cover.alt = `Copertina ${book.title}`;
+  cover.loading = "lazy";
+  protectImage(cover);
+  coverWrap.appendChild(cover);
+
+  const copy = document.createElement("div");
+  copy.className = "book-copy";
+
+  const eyebrow = document.createElement("span");
+  eyebrow.className = "book-eyebrow";
+  eyebrow.textContent = book.eyebrow;
+
+  const title = document.createElement("h3");
+  title.textContent = book.title;
+
+  const description = document.createElement("p");
+  description.textContent = book.description;
+
+  const action = document.createElement("span");
+  action.className = "book-action";
+  action.textContent = "Apri libro";
+
+  copy.append(eyebrow, title, description, action);
+  card.append(coverWrap, copy);
+  return card;
+}
+
+function createChapterCard(book, chapter, index) {
+  const card = document.createElement("button");
+  card.className = `chapter-card ${book.accent}${chapter.bangla ? " bangla-card" : ""}`;
+  card.type = "button";
+  card.setAttribute("aria-label", `Apri ${chapter.display}`);
+  card.addEventListener("click", () => openChapter(book, chapter));
+
+  const number = getChapterNumber(book, chapter, index);
+  const visual = document.createElement("div");
+  visual.className = "chapter-visual";
+
+  if (book.key === "quizbook") {
+    const image = document.createElement("img");
+    image.src = `quiz_cards/Capitolo_${number}.png`;
+    image.alt = chapter.display;
+    image.loading = "lazy";
+    image.onerror = () => {
+      visual.textContent = "";
+      visual.appendChild(createChapterNumber(number));
+    };
+    protectImage(image);
+    visual.appendChild(image);
+  } else {
+    visual.appendChild(createChapterNumber(number));
+  }
+
+  const body = document.createElement("div");
+  body.className = "chapter-card-body";
+
+  const title = document.createElement("strong");
+  title.textContent = chapter.display;
+
+  const hint = document.createElement("span");
+  hint.textContent = book.title;
+
+  body.append(title, hint);
+  card.append(visual, body);
+  return card;
+}
+
+function getChapterNumber(book, chapter, index) {
+  if (book.key === "quizbook") {
+    return chapter.folder.match(/Capitolo_(\d+)/)?.[1] || String(index + 1).padStart(2, "0");
+  }
+
+  return String(index + 1).padStart(2, "0");
+}
+
+function createChapterNumber(number) {
+  const element = document.createElement("span");
+  element.className = "chapter-number";
+  element.textContent = number;
+  return element;
+}
+
 function loadImage(url, alt) {
   return new Promise((resolve, reject) => {
     const image = new Image();
-
     const timeout = window.setTimeout(() => {
-      reject(new Error(`Tempo scaduto durante il caricamento: ${url}`));
+      reject(new Error(`Tempo scaduto: ${url}`));
     }, 45000);
 
     image.onload = () => {
       window.clearTimeout(timeout);
+      image.loading = "lazy";
       resolve(image);
     };
 
     image.onerror = () => {
       window.clearTimeout(timeout);
-      reject(new Error(`Immagine non trovata o non caricabile: ${url}`));
+      reject(new Error(`Immagine non trovata: ${url}`));
     };
 
     image.alt = alt;
@@ -179,56 +310,55 @@ function loadImage(url, alt) {
   });
 }
 
-async function loadPageImage(chapterFolder, page, alt) {
-  const urls = buildQuizBookImageUrlVariants(chapterFolder, page);
+async function loadPageImage(book, chapter, page) {
+  const urls = buildImageUrlVariants(book.key, chapter.folder, page);
   let lastError = null;
 
   for (const url of urls) {
     try {
-      const image = await loadImage(url, alt);
-      return { image, url, triedUrls: urls };
+      const image = await loadImage(url, `${book.title} - ${chapter.display} - pagina ${page}`);
+      return { image, url };
     } catch (error) {
       lastError = error;
     }
   }
 
-  throw Object.assign(lastError || new Error("Immagine non trovata"), {
-    triedUrls: urls
-  });
+  throw lastError || new Error("Immagine non trovata");
 }
 
-async function openChapter(chapterFolder) {
+async function openChapter(book, chapter) {
   currentLoadToken++;
   const loadToken = currentLoadToken;
-  const chapterTitle = getChapterTitle(chapterFolder);
 
-  showReader();
-  bookPages.innerHTML = "";
-  readerTitle.textContent = chapterTitle;
-  readerStatus.textContent = "Preparazione pagine...";
-  readerLoading.style.display = "block";
-  readerLoading.textContent = "Caricamento pagine...";
+  showViewer();
+  pageList.innerHTML = "";
+  loader.style.display = "block";
+  loader.textContent = "Caricamento pagine...";
+  viewerBookTitle.textContent = book.title;
+  viewerTitle.textContent = chapter.display;
+  viewerStatus.textContent = "Preparazione pagine...";
 
   let page = 1;
   let loadedPages = 0;
 
   while (loadToken === currentLoadToken) {
-    readerStatus.textContent = `Caricamento pagina ${page}...`;
+    viewerStatus.textContent = `Caricamento pagina ${page}...`;
 
     try {
-      const { image } = await loadPageImage(chapterFolder, page, `${chapterTitle} - pagina ${page}`);
+      const { image } = await loadPageImage(book, chapter, page);
 
       if (loadToken !== currentLoadToken) {
         return;
       }
 
       const pageWrap = document.createElement("div");
-      pageWrap.className = "book-page";
+      pageWrap.className = "page-wrap";
       pageWrap.appendChild(image);
-      bookPages.appendChild(pageWrap);
+      pageList.appendChild(pageWrap);
 
       loadedPages++;
-      readerStatus.textContent = `${loadedPages} pagine caricate`;
+      loader.style.display = "none";
+      viewerStatus.textContent = `${loadedPages} pagine caricate`;
       page++;
     } catch (error) {
       if (loadToken !== currentLoadToken) {
@@ -236,15 +366,11 @@ async function openChapter(chapterFolder) {
       }
 
       if (loadedPages === 0) {
-        const triedUrls = error.triedUrls || buildQuizBookImageUrlVariants(chapterFolder, page);
-        readerLoading.innerHTML = `
-          <p>Nessuna pagina trovata per questo capitolo.</p>
-          <p class="debug-url">URL cercati: ${triedUrls.join(" | ")}</p>
-        `;
-        readerStatus.textContent = "Nessuna pagina caricata";
+        loader.textContent = "Nessuna pagina trovata per questo capitolo.";
+        viewerStatus.textContent = "Nessuna pagina caricata";
       } else {
-        readerLoading.style.display = "none";
-        readerStatus.textContent = `${loadedPages} pagine caricate`;
+        loader.style.display = "none";
+        viewerStatus.textContent = `${loadedPages} pagine caricate`;
       }
 
       return;
@@ -252,17 +378,17 @@ async function openChapter(chapterFolder) {
   }
 }
 
-function renderChapters() {
+function renderBooks() {
+  booksGrid.innerHTML = "";
+  Object.values(BOOKS).forEach((book) => {
+    booksGrid.appendChild(createBookCard(book));
+  });
+}
+
+function renderChapters(book) {
   chaptersGrid.innerHTML = "";
-
-  if (!QUIZBOOK_CHAPTERS.length) {
-    errorBox.style.display = "block";
-    return;
-  }
-
-  errorBox.style.display = "none";
-  QUIZBOOK_CHAPTERS.forEach((chapterFolder, index) => {
-    chaptersGrid.appendChild(createChapterCard(chapterFolder, index));
+  book.chapters.forEach((chapter, index) => {
+    chaptersGrid.appendChild(createChapterCard(book, chapter, index));
   });
 }
 
@@ -272,11 +398,21 @@ document.addEventListener("contextmenu", (event) => {
   }
 });
 
-openBookBtn.addEventListener("click", showChapters);
-backBtn.addEventListener("click", showCover);
-closeReaderBtn.addEventListener("click", () => {
-  currentLoadToken++;
-  showChapters();
+document.addEventListener("selectstart", (event) => {
+  if (event.target instanceof HTMLImageElement) {
+    event.preventDefault();
+  }
 });
 
-renderChapters();
+backToBooksBtn.addEventListener("click", showBooks);
+backToChaptersBtn.addEventListener("click", () => {
+  if (activeBook) {
+    currentLoadToken++;
+    showChapters(activeBook.key);
+  } else {
+    showBooks();
+  }
+});
+
+document.body.dataset.screen = "books";
+renderBooks();

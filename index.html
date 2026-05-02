@@ -3,56 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quiz Book</title>
-  <link rel="stylesheet" href="style.css?v=20260502-r3" />
+  <title>Book Demo</title>
+  <link rel="stylesheet" href="style.css?v=20260502-client-r1" />
 </head>
 <body>
   <main class="app">
-    <header class="topbar">
-      <div class="brand">
-        <h1>Quiz Book</h1>
-        <p id="subtitle">Tocca la copertina per aprire i capitoli</p>
-      </div>
+    <header class="app-header">
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <p class="eyebrow">Anteprima digitale</p>
+          <h1 id="mainTitle">Book Demo</h1>
+          <p id="subtitle">Scegli un libro e sfoglia le pagine in anteprima.</p>
+        </div>
 
-      <button class="back-btn" id="backBtn" type="button">Indietro</button>
-    </header>
-
-    <section class="screen active" id="coverScreen">
-      <div class="cover-wrap">
-        <button class="cover-card" id="openBookBtn" type="button" aria-label="Apri il libro">
-          <img src="quiz_cards/quizbookcover.png" alt="Copertina Quiz Book" />
-        </button>
-      </div>
-    </section>
-
-    <section class="screen" id="chaptersScreen">
-      <div class="section-title">
-        <h2>Capitoli</h2>
-        <p>Scegli una card per leggere il capitolo dentro questa pagina.</p>
-      </div>
-
-      <div class="chapters-grid" id="chaptersGrid"></div>
-
-      <div class="empty-error" id="errorBox">
-        Non riesco a caricare i capitoli. Controlla la configurazione dei capitoli QuizBook.
-      </div>
-    </section>
-
-    <section class="screen" id="readerScreen">
-      <div class="reader-toolbar">
-        <button class="reader-btn" id="closeReaderBtn" type="button">Torna ai capitoli</button>
-
-        <div class="reader-title">
-          <h2 id="readerTitle">Capitolo</h2>
-          <p id="readerStatus">Caricamento...</p>
+        <div class="hero-side">
+          <span class="hero-pill">Lettura interattiva</span>
+          <div class="hero-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </div>
 
-      <div class="reader-loading" id="readerLoading">Caricamento pagine...</div>
-      <div class="book-pages" id="bookPages"></div>
+      <button class="nav-btn hidden" id="backToBooksBtn" type="button">Libri</button>
+    </header>
+
+    <section class="screen active" id="bookScreen" aria-labelledby="booksTitle">
+      <div class="section-title">
+        <p class="section-kicker">Libreria digitale</p>
+        <h2 id="booksTitle">Scegli il libro</h2>
+        <p>Due raccolte pronte da consultare in modo semplice, veloce e ottimizzato per smartphone.</p>
+      </div>
+
+      <div class="books-grid" id="booksGrid"></div>
+    </section>
+
+    <section class="screen" id="chaptersScreen" aria-labelledby="chaptersTitle">
+      <div class="section-title">
+        <h2 id="chaptersTitle">Capitoli</h2>
+        <p id="chaptersIntro">Scegli un capitolo per iniziare la lettura.</p>
+      </div>
+
+      <div class="chapters-grid" id="chaptersGrid"></div>
+    </section>
+
+    <section class="screen" id="viewerScreen" aria-labelledby="viewerTitle">
+      <div class="viewer-toolbar">
+        <button class="nav-btn" id="backToChaptersBtn" type="button">Capitoli</button>
+
+        <div class="viewer-heading">
+          <p id="viewerBookTitle">Libro</p>
+          <h2 id="viewerTitle">Capitolo</h2>
+          <span id="viewerStatus">Caricamento...</span>
+        </div>
+      </div>
+
+      <div class="loader" id="loader">Caricamento pagine...</div>
+      <div class="page-list" id="pageList"></div>
     </section>
   </main>
 
-  <script src="script.js?v=20260502-r3"></script>
+  <script src="script.js?v=20260502-client-r1"></script>
 </body>
 </html>
