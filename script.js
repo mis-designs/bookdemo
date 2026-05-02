@@ -93,9 +93,14 @@ const viewerTitle = document.getElementById("viewerTitle");
 const viewerStatus = document.getElementById("viewerStatus");
 const loader = document.getElementById("loader");
 const pageList = document.getElementById("pageList");
+const readerNav = document.getElementById("readerNav");
+const prevChapterBtn = document.getElementById("prevChapterBtn");
+const nextChapterBtn = document.getElementById("nextChapterBtn");
 
 let activeBook = null;
+let activeChapterIndex = -1;
 let currentLoadToken = 0;
+let isApplyingHistory = false;
 
 function buildImageUrl(bookKey, folder, page) {
   const pageNumber = String(page).padStart(3, "0");
@@ -165,17 +170,33 @@ function setScreen(screen) {
   scrollToTop();
 }
 
-function showBooks() {
+function pushAppState(state) {
+  if (!isApplyingHistory) {
+    window.history.pushState(state, "", window.location.pathname);
+  }
+}
+
+function replaceAppState(state) {
+  window.history.replaceState(state, "", window.location.pathname);
+}
+
+function showBooks(shouldPushState = true) {
   currentLoadToken++;
   activeBook = null;
+  activeChapterIndex = -1;
   mainTitle.textContent = "Book Demo";
   subtitle.textContent = "Scegli un libro e sfoglia le pagine in anteprima.";
   setScreen(bookScreen);
+
+  if (shouldPushState) {
+    pushAppState({ screen: "books" });
+  }
 }
 
-function showChapters(bookKey) {
+function showChapters(bookKey, shouldPushState = true) {
   currentLoadToken++;
   activeBook = BOOKS[bookKey];
+  activeChapterIndex = -1;
 
   mainTitle.textContent = activeBook.title;
   subtitle.textContent = activeBook.eyebrow;
@@ -184,6 +205,10 @@ function showChapters(bookKey) {
 
   renderChapters(activeBook);
   setScreen(chaptersScreen);
+
+  if (shouldPushState) {
+    pushAppState({ screen: "chapters", bookKey });
+  }
 }
 
 function showViewer() {
@@ -234,7 +259,7 @@ function createChapterCard(book, chapter, index) {
   card.className = `chapter-card ${book.accent}${chapter.bangla ? " bangla-card" : ""}`;
   card.type = "button";
   card.setAttribute("aria-label", `Apri ${chapter.display}`);
-  card.addEventListener("click", () => openChapter(book, chapter));
+    card.addEventListener("click", () => openChapter(book, chapter, index));
 
   const number = getChapterNumber(book, chapter, index);
   const visual = document.createElement("div");
@@ -326,17 +351,28 @@ async function loadPageImage(book, chapter, page) {
   throw lastError || new Error("Immagine non trovata");
 }
 
-async function openChapter(book, chapter) {
+async function openChapter(book, chapter, chapterIndex = 0, shouldPushState = true) {
   currentLoadToken++;
   const loadToken = currentLoadToken;
+  activeBook = book;
+  activeChapterIndex = chapterIndex;
 
   showViewer();
   pageList.innerHTML = "";
+  readerNav.classList.add("hidden");
   loader.style.display = "block";
   loader.textContent = "Caricamento pagine...";
   viewerBookTitle.textContent = book.title;
   viewerTitle.textContent = chapter.display;
   viewerStatus.textContent = "Preparazione pagine...";
+
+  if (shouldPushState) {
+    pushAppState({
+      screen: "viewer",
+      bookKey: book.key,
+      chapterIndex
+    });
+  }
 
   let page = 1;
   let loadedPages = 0;
@@ -370,12 +406,70 @@ async function openChapter(book, chapter) {
         viewerStatus.textContent = "Nessuna pagina caricata";
       } else {
         loader.style.display = "none";
-        viewerStatus.textContent = `${loadedPages} pagine caricate`;
+        viewerStatus.textContent = `Capitolo completato - ${loadedPages} pagine`;
+        showReaderNav();
       }
 
       return;
     }
   }
+}
+
+function showReaderNav() {
+  if (!activeBook || activeChapterIndex < 0) {
+    readerNav.classList.add("hidden");
+    return;
+  }
+
+  const previousIndex = activeChapterIndex - 1;
+  const nextIndex = activeChapterIndex + 1;
+  const hasPrevious = previousIndex >= 0;
+  const hasNext = nextIndex < activeBook.chapters.length;
+
+  prevChapterBtn.disabled = !hasPrevious;
+  nextChapterBtn.disabled = !hasNext;
+  readerNav.classList.remove("hidden");
+}
+
+function openChapterByIndex(index) {
+  if (!activeBook) {
+    return;
+  }
+
+  if (index < 0) {
+    showBooks();
+    return;
+  }
+
+  if (index >= activeBook.chapters.length) {
+    return;
+  }
+
+  openChapter(activeBook, activeBook.chapters[index], index);
+}
+
+function applyAppState(state) {
+  isApplyingHistory = true;
+
+  if (!state || state.screen === "books") {
+    showBooks(false);
+  } else if (state.screen === "chapters" && BOOKS[state.bookKey]) {
+    showChapters(state.bookKey, false);
+  } else if (state.screen === "viewer" && BOOKS[state.bookKey]) {
+    const book = BOOKS[state.bookKey];
+    const chapterIndex = Number(state.chapterIndex) || 0;
+    const chapter = book.chapters[chapterIndex];
+
+    if (chapter) {
+      openChapter(book, chapter, chapterIndex, false);
+    } else {
+      showChapters(book.key, false);
+    }
+  } else {
+    showBooks(false);
+  }
+
+  isApplyingHistory = false;
 }
 
 function renderBooks() {
@@ -404,15 +498,30 @@ document.addEventListener("selectstart", (event) => {
   }
 });
 
-backToBooksBtn.addEventListener("click", showBooks);
+backToBooksBtn.addEventListener("click", () => {
+  showBooks();
+});
+
 backToChaptersBtn.addEventListener("click", () => {
   if (activeBook) {
-    currentLoadToken++;
     showChapters(activeBook.key);
   } else {
     showBooks();
   }
 });
 
+prevChapterBtn.addEventListener("click", () => {
+  openChapterByIndex(activeChapterIndex - 1);
+});
+
+nextChapterBtn.addEventListener("click", () => {
+  openChapterByIndex(activeChapterIndex + 1);
+});
+
+window.addEventListener("popstate", (event) => {
+  applyAppState(event.state || { screen: "books" });
+});
+
 document.body.dataset.screen = "books";
+replaceAppState({ screen: "books" });
 renderBooks();

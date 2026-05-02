@@ -279,6 +279,23 @@ img {
   gap: 22px;
 }
 
+.home-watermark {
+  display: flex;
+  justify-content: center;
+  margin: 30px auto 0;
+  opacity: 0.74;
+}
+
+.home-watermark img {
+  width: min(190px, 46vw);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 20px rgba(31, 45, 73, 0.12));
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .book-card,
 .chapter-card {
   position: relative;
@@ -688,6 +705,42 @@ body[data-screen="viewer"] .page-wrap {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+.reader-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100% - 12px, 520px);
+  margin: 16px auto 22px;
+  padding: 0 6px;
+}
+
+.reader-nav.hidden {
+  display: none;
+}
+
+.reader-nav-btn {
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #071326;
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 950;
+  box-shadow: 0 12px 28px rgba(31, 45, 73, 0.13);
+}
+
+.reader-nav-btn.primary {
+  background: #071326;
+  color: white;
+}
+
+.reader-nav-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  box-shadow: none;
 }
 
 .nav-btn:focus-visible,

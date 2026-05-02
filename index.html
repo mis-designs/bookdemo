@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Book Demo</title>
-  <link rel="stylesheet" href="style.css?v=20260502-client-r1" />
+  <link rel="stylesheet" href="style.css?v=20260502-watermark-r1" />
 </head>
 <body>
   <main class="app">
@@ -37,6 +37,10 @@
       </div>
 
       <div class="books-grid" id="booksGrid"></div>
+
+      <div class="home-watermark" aria-label="M Designs">
+        <img src="mdesignstextlogo.png" alt="M Designs" />
+      </div>
     </section>
 
     <section class="screen" id="chaptersScreen" aria-labelledby="chaptersTitle">
@@ -61,9 +65,14 @@
 
       <div class="loader" id="loader">Caricamento pagine...</div>
       <div class="page-list" id="pageList"></div>
+
+      <div class="reader-nav hidden" id="readerNav">
+        <button class="reader-nav-btn" id="prevChapterBtn" type="button">Back</button>
+        <button class="reader-nav-btn primary" id="nextChapterBtn" type="button">Next</button>
+      </div>
     </section>
   </main>
 
-  <script src="script.js?v=20260502-client-r1"></script>
+  <script src="script.js?v=20260502-nav-r1"></script>
 </body>
 </html>
