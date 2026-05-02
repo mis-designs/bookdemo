@@ -45,9 +45,16 @@ const readerLoading = document.getElementById("readerLoading");
 
 let currentLoadToken = 0;
 
-function buildQuizBookImageUrl(chapterFolder, page) {
+function buildQuizBookImageUrl(chapterFolder, page, separator = "_") {
   const pageNumber = String(page).padStart(3, "0");
-  return `${R2_BASE_URL}/books/quiz_book/${chapterFolder}/${chapterFolder}-page-${pageNumber}.jpg`;
+  return `${R2_BASE_URL}/books/quiz_book/${chapterFolder}/${chapterFolder}${separator}page-${pageNumber}.jpg`;
+}
+
+function buildQuizBookImageUrlVariants(chapterFolder, page) {
+  return [
+    buildQuizBookImageUrl(chapterFolder, page, "_"),
+    buildQuizBookImageUrl(chapterFolder, page, "-")
+  ];
 }
 
 function getChapterNumber(chapterFolder) {
@@ -172,6 +179,24 @@ function loadImage(url, alt) {
   });
 }
 
+async function loadPageImage(chapterFolder, page, alt) {
+  const urls = buildQuizBookImageUrlVariants(chapterFolder, page);
+  let lastError = null;
+
+  for (const url of urls) {
+    try {
+      const image = await loadImage(url, alt);
+      return { image, url, triedUrls: urls };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw Object.assign(lastError || new Error("Immagine non trovata"), {
+    triedUrls: urls
+  });
+}
+
 async function openChapter(chapterFolder) {
   currentLoadToken++;
   const loadToken = currentLoadToken;
@@ -188,11 +213,10 @@ async function openChapter(chapterFolder) {
   let loadedPages = 0;
 
   while (loadToken === currentLoadToken) {
-    const url = buildQuizBookImageUrl(chapterFolder, page);
     readerStatus.textContent = `Caricamento pagina ${page}...`;
 
     try {
-      const image = await loadImage(url, `${chapterTitle} - pagina ${page}`);
+      const { image } = await loadPageImage(chapterFolder, page, `${chapterTitle} - pagina ${page}`);
 
       if (loadToken !== currentLoadToken) {
         return;
@@ -212,7 +236,11 @@ async function openChapter(chapterFolder) {
       }
 
       if (loadedPages === 0) {
-        readerLoading.textContent = "Nessuna pagina trovata per questo capitolo.";
+        const triedUrls = error.triedUrls || buildQuizBookImageUrlVariants(chapterFolder, page);
+        readerLoading.innerHTML = `
+          <p>Nessuna pagina trovata per questo capitolo.</p>
+          <p class="debug-url">URL cercati: ${triedUrls.join(" | ")}</p>
+        `;
         readerStatus.textContent = "Nessuna pagina caricata";
       } else {
         readerLoading.style.display = "none";
