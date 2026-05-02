@@ -2,6 +2,10 @@ const R2_BASE_URL = "https://pub-21131aa867534601af79c34beb746fb7.r2.dev";
 const CARD_FOLDER = "quiz_cards";
 
 const QUIZBOOK_CHAPTERS = [
+  "Capitolo_01_Definizioni_Stradali",
+  "Capitolo_02_Segnali_di_Pericolo",
+  "Capitolo_03_Segnali_di_Divieto",
+  "Capitolo_04_Segnali_di_Obbligo",
   "Capitolo_05_Segnali_di_Precedenza",
   "Capitolo_06_Segnaletica_Orizzontale",
   "Capitolo_07_Semafori_e_Agenti",
