@@ -466,27 +466,45 @@ img {
 .chapters-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 13px;
+  gap: 16px;
 }
 
 .chapter-card {
-  min-height: 164px;
+  min-height: 218px;
   overflow: hidden;
-  border-radius: 26px;
+  border-radius: 22px;
+  background: #071326;
+  isolation: isolate;
 }
 
 .chapter-card::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
-  opacity: 0.8;
+  background:
+    linear-gradient(180deg, rgba(7, 19, 38, 0.08) 0%, rgba(7, 19, 38, 0.15) 42%, rgba(7, 19, 38, 0.82) 100%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 34%);
+  opacity: 1;
+}
+
+.chapter-card::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 4;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .chapter-visual {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  min-height: 92px;
+  height: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -503,33 +521,66 @@ img {
 .chapter-visual img {
   width: 100%;
   display: block;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   background: #eef3fb;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  transform: scale(1.01);
+  transition: transform 260ms ease, filter 260ms ease;
+}
+
+.chapter-card-index {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  padding: 6px 11px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #071326;
+  font-size: 0.76rem;
+  font-weight: 950;
+  box-shadow: 0 12px 28px rgba(7, 19, 38, 0.2);
+  backdrop-filter: blur(16px);
 }
 
 .chapter-number {
-  color: rgba(7, 19, 38, 0.86);
-  font-size: 2.25rem;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 3rem;
   font-weight: 950;
+  text-shadow: 0 12px 30px rgba(7, 19, 38, 0.28);
 }
 
 .chapter-card-body {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 3;
   display: grid;
-  gap: 7px;
-  padding: 13px;
+  gap: 8px;
+  padding: 56px 15px 16px;
+  background: linear-gradient(180deg, transparent, rgba(7, 19, 38, 0.86) 58%, rgba(7, 19, 38, 0.94));
 }
 
 .chapter-card-body strong {
   display: block;
-  color: #071326;
-  font-size: 0.92rem;
+  color: #fff;
+  font-size: 0.98rem;
   font-weight: 900;
-  line-height: 1.24;
+  line-height: 1.18;
+  text-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+}
+
+.chapter-card-body span {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .bangla-card .chapter-card-body strong {
@@ -770,6 +821,11 @@ body[data-screen="viewer"] .page-wrap {
     transform: rotateY(13deg) rotateZ(3deg) translateY(-8px) scale(1.025);
   }
 
+  .chapter-card:hover .chapter-visual img {
+    filter: saturate(1.08) contrast(1.03);
+    transform: scale(1.08);
+  }
+
   .book-card:hover .book-action,
   .nav-btn:hover {
     box-shadow: 0 20px 38px rgba(7, 19, 38, 0.3);
@@ -898,15 +954,25 @@ body[data-screen="viewer"] .page-wrap {
   }
 
   .chapter-card {
-    min-height: 152px;
-    border-radius: 22px;
+    min-height: 190px;
+    border-radius: 20px;
   }
 
   .chapter-card-body {
-    padding: 11px;
+    padding: 48px 11px 12px;
   }
 
   .chapter-card-body strong {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+    line-height: 1.16;
+  }
+
+  .chapter-card-index {
+    top: 10px;
+    left: 10px;
+    min-width: 36px;
+    min-height: 28px;
+    padding: 5px 9px;
+    font-size: 0.7rem;
   }
 }

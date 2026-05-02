@@ -1,4 +1,5 @@
 const R2_BASE_URL = "https://pub-21131aa867534601af79c34beb746fb7.r2.dev";
+const CARD_IMAGE_BASE = "card/";
 
 const QUIZBOOK_CHAPTERS = [
   "Capitolo_01_Definizioni_Stradali",
@@ -29,25 +30,53 @@ const QUIZBOOK_CHAPTERS = [
 ];
 
 const SUCCESS_BOOK_CHAPTERS = [
-  { folder: "strada", display: "Strada" },
-  { folder: "segnali_di_pericolo", display: "Segnali di Pericolo" },
-  { folder: "segnali_di_divieto", display: "Segnali di Divieto" },
-  { folder: "segnali_di_obbligo", display: "Segnali di Obbligo" },
-  { folder: "segnali_di_precedenza", display: "Segnali di Precedenza" },
-  { folder: "segnaletica_orizzontale", display: "Segnaletica Orizzontale" },
-  { folder: "semafori_e_agenti", display: "Semafori e Agenti" },
-  { folder: "segnali_di_indicazione", display: "Segnali di Indicazione" },
-  { folder: "segnali_complementari_e_delineatore", display: "Segnali Complementari e Delineatore" },
-  { folder: "pnanelli_integrativi", display: "Pannelli Integrativi" },
-  { folder: "word_meaning_with_photos", display: "Word Meaning" },
-  { folder: "word_meaning", display: "Word Meaning with Photos" },
+  { folder: "strada", display: "Strada", cardImage: "strada.jpg" },
+  { folder: "segnali_di_pericolo", display: "Segnali di Pericolo", cardImage: "Segnali-di-pericolo.jpg" },
+  { folder: "segnali_di_divieto", display: "Segnali di Divieto", cardImage: "seganli-divieto.jpg" },
+  { folder: "segnali_di_obbligo", display: "Segnali di Obbligo", cardImage: "Segnale-obbligo.jpg" },
+  { folder: "segnali_di_precedenza", display: "Segnali di Precedenza", cardImage: "segnale_precedenza.jpg" },
+  { folder: "segnaletica_orizzontale", display: "Segnaletica Orizzontale", cardImage: "segnaletica-orizzontale.jpg" },
+  { folder: "semafori_e_agenti", display: "Semafori e Agenti", cardImage: "semafori_agente.jpg" },
+  { folder: "segnali_di_indicazione", display: "Segnali di Indicazione", cardImage: "segnali-indicazione.jpg" },
+  { folder: "segnali_complementari_e_delineatore", display: "Segnali Complementari e Delineatore", cardImage: "Segnali Complementari e Delineatore.jpg" },
+  { folder: "pannelli_integrativi", filePrefix: "pnanelli_integrativi", display: "Pannelli Integrativi", cardImage: "pannelli_integrativi.jpg" },
+  { folder: "word_meaning_with_photos", display: "Word Meaning with Photos", cardImage: "word_meaning_with_image.jpg" },
+  { folder: "word_meaning", display: "Word Meaning", cardImage: "word.jpg" },
   { folder: "quiz_sugli_errori_commessi_più_frequentemente", display: "Quiz sugli errori commessi più frequentemente" },
   { folder: "dhada_bangla", display: "চোখের ধাঁদা", bangla: true },
   { folder: "trucchi_velocita", display: "Trucchi Velocità" },
-  { folder: "trucchi_vero_falso", display: "Trucchi Vero/Falso" },
-  { folder: "scheda_esame", display: "Scheda Esame" },
-  { folder: "tipi_di_veicoli", display: "Tipi di Veicoli" }
+  { folder: "trucchi_vero_falso", display: "Trucchi Vero/Falso", cardImage: "trucchi_vero_falso.jpg" },
+  { folder: "scheda_esame", display: "Scheda Esame", cardImage: "scheda_esame.jpg" },
+  { folder: "tipi_di_veicoli", display: "Tipi di Veicoli", cardImage: "tipi_di_veicoli.jpg" }
 ];
+
+const SUCCESS_BOOK_CARD_IMAGES = {
+  dhada_bangla: "dhada_bangla.jpg",
+  trucchi_velocita: "trucchi_velocita.jpg"
+};
+
+const SUCCESS_BOOK_CARD_TITLES = {
+  dhada_bangla: "Dhadha Bangla",
+  trucchi_velocita: "Trucchi Velocita"
+};
+
+SUCCESS_BOOK_CHAPTERS.forEach((chapter) => {
+  const fallbackImage = chapter.folder.startsWith("quiz_sugli_errori")
+    ? "errori_frequenti.jpg"
+    : SUCCESS_BOOK_CARD_IMAGES[chapter.folder];
+  const fallbackTitle = chapter.folder.startsWith("quiz_sugli_errori")
+    ? "Errori Frequenti"
+    : SUCCESS_BOOK_CARD_TITLES[chapter.folder];
+  const cardImage = chapter.cardImage || fallbackImage;
+
+  if (fallbackTitle) {
+    chapter.display = fallbackTitle;
+  }
+
+  if (cardImage && !cardImage.includes("/")) {
+    chapter.cardImage = `${CARD_IMAGE_BASE}${cardImage}`;
+  }
+});
 
 const BOOKS = {
   quizbook: {
@@ -68,7 +97,7 @@ const BOOKS = {
     title: "Success Book",
     eyebrow: "18 sezioni studio",
     description: "Trucchi, parole chiave, schede e materiali di supporto per studiare meglio.",
-    cover: "successbookcover.png",
+    cover: `${CARD_IMAGE_BASE}successbookcover.png`,
     accent: "success-accent",
     chapters: SUCCESS_BOOK_CHAPTERS.map((chapter) => ({
       ...chapter,
@@ -102,34 +131,36 @@ let activeChapterIndex = -1;
 let currentLoadToken = 0;
 let isApplyingHistory = false;
 
-function buildImageUrl(bookKey, folder, page) {
+function buildImageUrl(bookKey, chapter, page) {
   const pageNumber = String(page).padStart(3, "0");
+  const filePrefix = chapter.filePrefix || chapter.folder;
 
   if (bookKey === "quizbook") {
-    return `${R2_BASE_URL}/books/quiz_book/${folder}/${folder}-page-${pageNumber}.jpg`;
+    return `${R2_BASE_URL}/books/quiz_book/${chapter.folder}/${filePrefix}-page-${pageNumber}.jpg`;
   }
 
   if (bookKey === "successbook") {
-    return `${R2_BASE_URL}/books/success_book/${folder}/${folder}-page-${pageNumber}.jpg`;
+    return `${R2_BASE_URL}/books/success_book/${chapter.folder}/${filePrefix}-page-${pageNumber}.jpg`;
   }
 
   return "";
 }
 
-function buildImageUrlVariants(bookKey, folder, page) {
-  const primaryUrl = buildImageUrl(bookKey, folder, page);
+function buildImageUrlVariants(bookKey, chapter, page) {
+  const primaryUrl = buildImageUrl(bookKey, chapter, page);
 
   if (bookKey !== "quizbook") {
     return [primaryUrl];
   }
 
   const pageNumber = String(page).padStart(3, "0");
+  const filePrefix = chapter.filePrefix || chapter.folder;
 
   return [
     primaryUrl,
-    `${R2_BASE_URL}/books/quiz_book/${folder}/${folder}_page-${pageNumber}.jpg`,
-    `${R2_BASE_URL}/books/quizbook/${folder}/${folder}-page-${pageNumber}.jpg`,
-    `${R2_BASE_URL}/books/quizbook/${folder}/${folder}_page-${pageNumber}.jpg`
+    `${R2_BASE_URL}/books/quiz_book/${chapter.folder}/${filePrefix}_page-${pageNumber}.jpg`,
+    `${R2_BASE_URL}/books/quizbook/${chapter.folder}/${filePrefix}-page-${pageNumber}.jpg`,
+    `${R2_BASE_URL}/books/quizbook/${chapter.folder}/${filePrefix}_page-${pageNumber}.jpg`
   ];
 }
 
@@ -259,15 +290,15 @@ function createChapterCard(book, chapter, index) {
   card.className = `chapter-card ${book.accent}${chapter.bangla ? " bangla-card" : ""}`;
   card.type = "button";
   card.setAttribute("aria-label", `Apri ${chapter.display}`);
-    card.addEventListener("click", () => openChapter(book, chapter, index));
+  card.addEventListener("click", () => openChapter(book, chapter, index));
 
   const number = getChapterNumber(book, chapter, index);
   const visual = document.createElement("div");
   visual.className = "chapter-visual";
 
-  if (book.key === "quizbook") {
+  if (book.key === "quizbook" || chapter.cardImage) {
     const image = document.createElement("img");
-    image.src = `quiz_cards/Capitolo_${number}.png`;
+    image.src = chapter.cardImage || `quiz_cards/Capitolo_${number}.png`;
     image.alt = chapter.display;
     image.loading = "lazy";
     image.onerror = () => {
@@ -283,6 +314,10 @@ function createChapterCard(book, chapter, index) {
   const body = document.createElement("div");
   body.className = "chapter-card-body";
 
+  const badge = document.createElement("span");
+  badge.className = "chapter-card-index";
+  badge.textContent = number;
+
   const title = document.createElement("strong");
   title.textContent = chapter.display;
 
@@ -290,7 +325,7 @@ function createChapterCard(book, chapter, index) {
   hint.textContent = book.title;
 
   body.append(title, hint);
-  card.append(visual, body);
+  card.append(visual, badge, body);
   return card;
 }
 
@@ -336,7 +371,7 @@ function loadImage(url, alt) {
 }
 
 async function loadPageImage(book, chapter, page) {
-  const urls = buildImageUrlVariants(book.key, chapter.folder, page);
+  const urls = buildImageUrlVariants(book.key, chapter, page);
   let lastError = null;
 
   for (const url of urls) {
