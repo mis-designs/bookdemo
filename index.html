@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Book</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Quiz Book</h1>
+        <p id="subtitle">Tocca la copertina per aprire i capitoli</p>
+      </div>
+
+      <button class="back-btn" id="backBtn" type="button">Indietro</button>
+    </header>
+
+    <section class="screen active" id="coverScreen">
+      <div class="cover-wrap">
+        <button class="cover-card" id="openBookBtn" type="button" aria-label="Apri il libro">
+          <img src="quiz_cards/quizbookcover.png" alt="Copertina Quiz Book" />
+        </button>
+      </div>
+    </section>
+
+    <section class="screen" id="chaptersScreen">
+      <div class="section-title">
+        <h2>Capitoli</h2>
+        <p>Scegli una card per leggere il capitolo dentro questa pagina.</p>
+      </div>
+
+      <div class="chapters-grid" id="chaptersGrid"></div>
+
+      <div class="empty-error" id="errorBox">
+        Non riesco a caricare i capitoli. Controlla la configurazione dei capitoli QuizBook.
+      </div>
+    </section>
+
+    <section class="screen" id="readerScreen">
+      <div class="reader-toolbar">
+        <button class="reader-btn" id="closeReaderBtn" type="button">Torna ai capitoli</button>
+
+        <div class="reader-title">
+          <h2 id="readerTitle">Capitolo</h2>
+          <p id="readerStatus">Caricamento...</p>
+        </div>
+      </div>
+
+      <div class="reader-loading" id="readerLoading">Caricamento pagine...</div>
+      <div class="book-pages" id="bookPages"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
